@@ -7,7 +7,16 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-//comment
+//git init
+//git add .
+//git commit -m "first"
+//git brach -M main
+//git remote add origin link
+//git push -u origin main
+
+//git add .
+//git commit -m "coba"
+//git push -u origin main
 
   // This widget is the root of your application.
   @override
