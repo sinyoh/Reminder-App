@@ -61,7 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  deletedata(id)async{
+  deletedata(id) async {
     await FirebaseFirestore.instance.collection('Reminderdb').doc(id).delete();
   }
 
@@ -74,7 +74,6 @@ class _HomeScreenState extends State<HomeScreen> {
       body: ListView.builder(
         itemCount: _reminder.length,
         itemBuilder: (context, index) {
-          
           initialize();
           final rem = _reminder[index];
           final judul = rem.judul;
@@ -85,37 +84,62 @@ class _HomeScreenState extends State<HomeScreen> {
           // print(judul);
 
           return Slidable(
-            endActionPane: ActionPane(
-              motion: const BehindMotion(),
-              children: [
-                SlidableAction(
-                  icon: Icons.edit,
-                  backgroundColor: Colors.blue,
-                  onPressed: (context) => {},
-                ),
-                SlidableAction(
-                  icon: Icons.delete,
-                  backgroundColor: Colors.red,
-                  onPressed: (context) => {
+              endActionPane: ActionPane(
+                motion: const BehindMotion(),
+                children: [
+                  SlidableAction(
+                    icon: Icons.edit,
+                    backgroundColor: Colors.blue,
+                    onPressed: (context) => {},
+                  ),
+                  SlidableAction(
+                    icon: Icons.delete,
+                    backgroundColor: Colors.red,
+                    onPressed: (context) => {
+                      //delete document dari firebase juga
+                      deletedata('${index + 1}')
+                    },
+                  ),
+                ],
+              ),
+              child:
+                  //   ListTile(
+                  //   leading: CircleAvatar(
+                  //     child: Text('${index + 1}'),
+                  //   ),
+                  //   title: Text(judul),
+                  //   subtitle: Text("$isi \n $tanggal - $bulan - $tahun"),
+                  //   isThreeLine: true,
 
-                    //delete document dari firebase juga
-                    deletedata('${index + 1}')
-
-                  },
-                ),
-              ],
-            ),
-            child: 
-            ListTile(
-            leading: CircleAvatar(
-              child: Text('${index + 1}'),
-            ),
-            title: Text(judul),
-            subtitle: Text("$isi \n $tanggal - $bulan - $tahun"),
-            isThreeLine: true,
-            
-          ),
-          );
+                  // ),
+                  Card(
+                      shadowColor: Colors.red,
+                      elevation: 8,
+                      clipBehavior: Clip.antiAlias,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Container(
+                          padding: EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '$isi',
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Text(
+                                '$tanggal - $bulan - $tahun',
+                                style: TextStyle(fontSize: 12),
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                judul,
+                                style: TextStyle(
+                                    fontSize: 24, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ))));
         },
       ),
       floatingActionButton: FloatingActionButton(
