@@ -1,6 +1,10 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:reminder_app/screen/login.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:reminder_app/screen/homepage.dart';
+import '../firebase_options.dart';
+import 'login.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -9,9 +13,10 @@ class Register extends StatefulWidget {
   State<Register> createState() => _RegistState();
 }
 
-
 class _RegistState extends State<Register> {
   final _formKey = GlobalKey<FormState>();
+  String Nama = "";
+  String Pass = "";
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
@@ -38,6 +43,8 @@ class _RegistState extends State<Register> {
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your email';
+                    } else {
+                      Nama = value;
                     }
                     return null;
                   },
@@ -54,6 +61,8 @@ class _RegistState extends State<Register> {
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your password';
+                    } else {
+                      Pass = value;
                     }
                     return null;
                   },
@@ -66,7 +75,7 @@ class _RegistState extends State<Register> {
                   child: ElevatedButton(
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
-                        // Navigate the user to the Home page
+                        register(Nama, Pass);
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Please fill input')),
@@ -77,27 +86,46 @@ class _RegistState extends State<Register> {
                   ),
                 ),
               ),
-              
-                RichText(
-                text: TextSpan( text: "Alredy have an account?",
-                children: [
-                  TextSpan(
-                    text: "Login now",
-                    style: TextStyle(
-                  fontSize: 20,
-                  color: Colors.blue,
-                  decoration: TextDecoration.underline,
-                ),
-                recognizer: TapGestureRecognizer()..onTap = () => Navigator.push(context,
-      MaterialPageRoute(builder: (context) => Login())),
-                  )
-                ])
-               )
-              
+              RichText(
+                  text: TextSpan(text: "Alredy have an account?", children: [
+                TextSpan(
+                  text: "Login now",
+                  style: TextStyle(
+                    fontSize: 20,
+                    color: Colors.blue,
+                    decoration: TextDecoration.underline,
+                  ),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () => Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => Login())),
+                )
+              ]))
             ],
           ),
         ),
       ),
     );
+  }
+
+  void register(String newemail, String newpassword) async {
+     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    try {
+      final newUser = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+              email: newemail, password: newpassword);
+
+      if (newUser != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScreen()),
+        );
+      }
+    } catch (e) {
+      print(e.toString());
+      // Handle login errors
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Register failed. Please try again.')),
+      );
+    }
   }
 }

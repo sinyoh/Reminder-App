@@ -1,0 +1,82 @@
+{
+  "project_info": {
+    "project_number": "437028462580",
+    "project_id": "proyekambw-bc567",
+    "storage_bucket": "proyekambw-bc567.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:437028462580:android:7ce53d2a3efb7330ade3a1",
+        "android_client_info": {
+          "package_name": "com.example.proyek_ambw_reminder"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "437028462580-nhvu2dao547tku3ae2n745523q0duqm3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDuVNAmuV98K6OJ3Yiho4zWGHfSbMxzH1Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "437028462580-nhvu2dao547tku3ae2n745523q0duqm3.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "437028462580-lt5l0mlha0u74ldoj7b31ib1ne04l16b.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.proyekAmbwReminder"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:437028462580:android:2450d7bed23c94eeade3a1",
+        "android_client_info": {
+          "package_name": "com.example.reminder_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "437028462580-nhvu2dao547tku3ae2n745523q0duqm3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDuVNAmuV98K6OJ3Yiho4zWGHfSbMxzH1Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "437028462580-nhvu2dao547tku3ae2n745523q0duqm3.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "437028462580-lt5l0mlha0u74ldoj7b31ib1ne04l16b.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.proyekAmbwReminder"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

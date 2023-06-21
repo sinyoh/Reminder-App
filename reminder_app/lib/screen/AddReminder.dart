@@ -1,7 +1,14 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:reminder_app/screen/homepage.dart';
-import 'package:reminder_app/screen/register.dart';
+import 'homepage.dart';
+import 'register.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // new
+import 'package:firebase_auth/firebase_auth.dart'
+    hide EmailAuthProvider, PhoneAuthProvider;
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_ui_auth/firebase_ui_auth.dart';
+
+import '../firebase_options.dart';
 
 class Add extends StatefulWidget {
   const Add({super.key});
@@ -10,19 +17,17 @@ class Add extends StatefulWidget {
   State<Add> createState() => _AddState();
 }
 
-
 class _AddState extends State<Add> {
-  void showdate(){
+  void showdate() {
     showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2023),
-      lastDate: DateTime(3000)
-    ).then((value){
+            context: context,
+            initialDate: DateTime.now(),
+            firstDate: DateTime(2023),
+            lastDate: DateTime(3000))
+        .then((value) {
       setState(() {
         _dateTime = value!;
       });
-      
     });
   }
 
@@ -34,6 +39,7 @@ class _AddState extends State<Add> {
 
   @override
   Widget build(BuildContext context) {
+   
     return Scaffold(
       appBar: AppBar(
         title: Text("Add Reminder"),
@@ -46,12 +52,13 @@ class _AddState extends State<Add> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Padding(
-                padding:const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-                child:
-                 TextFormField(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                child: TextFormField(
                   controller: Judul,
                   decoration: const InputDecoration(
-                      border: OutlineInputBorder(), labelText: "Judul Reminder"),
+                      border: OutlineInputBorder(),
+                      labelText: "Judul Reminder"),
                 ),
               ),
               Padding(
@@ -63,7 +70,7 @@ class _AddState extends State<Add> {
                       border: OutlineInputBorder(), labelText: "Isi"),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your Name';
+                      return 'Isi reminder tidak boleh kosong';
                     }
                     return null;
                   },
@@ -80,18 +87,33 @@ class _AddState extends State<Add> {
                 ),
               ),
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-                child: Text(_dateTime.day.toString()+ "-"+_dateTime.month.toString()+"-"+_dateTime.year.toString())
-              ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                  child: Text(_dateTime.day.toString() +
+                      "-" +
+                      _dateTime.month.toString() +
+                      "-" +
+                      _dateTime.year.toString())),
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 8, vertical: 16.0),
                 child: Center(
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.push(context,
-      MaterialPageRoute(builder: (context) => HomeScreen()));
+                      FirebaseFirestore.instance
+                          .collection('Reminderdb')
+                          .add(<String, dynamic>{
+                        'judul': Judul.text,
+                        'isi': Isi.text,
+                        'tanggal': _dateTime.day.toString(),
+                        'bulan': _dateTime.month.toString(),
+                        'tahun': _dateTime.year.toString(),
+                        'sender': FirebaseAuth.instance.currentUser!.uid,
+                      });
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => HomeScreen()));
                       // if (_formKey.currentState!.validate()) {
                       //   // Navigate the user to the Home page
                       // } else {
@@ -109,7 +131,10 @@ class _AddState extends State<Add> {
         ),
       ),
     );
-    
   }
-  
+
+  Future<void> initialize() async {
+    await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform);
+  }
 }

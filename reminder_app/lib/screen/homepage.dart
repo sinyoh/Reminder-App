@@ -1,85 +1,130 @@
-import 'dart:convert';
-import 'dart:html';
+import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:reminder_app/screen/reminder.dart';
-import 'package:reminder_app/screen/AddReminder.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+import 'reminder.dart';
+import 'AddReminder.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<Reminder> rems = [Reminder("test1", "test1"), Reminder("test2", "test2")];
+  StreamSubscription<QuerySnapshot>? _reminderSubscription;
+  List<Reminder> _reminder = [];
+  List<Reminder> get reminder => _reminder;
 
-void _showTimePicker(){
-  showTimePicker(context: context,
-    initialTime: TimeOfDay.now(),
-  );
-}
+  void _showTimePicker() {
+    showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    initialize();
+  }
+
+  void initialize() {
+    _reminderSubscription = FirebaseFirestore.instance
+        .collection('Reminderdb')
+        .snapshots()
+        .listen((snapshot) {
+      setState(() {
+        _reminder = [];
+        for (final document in snapshot.docs) {
+          try {
+            // print(document.toString());
+            _reminder.add(Reminder(
+              document.data()['judul'] as String,
+              document.data()['isi'] as String,
+              int.parse(document.data()['tanggal'] as String),
+              int.parse(document.data()['bulan'] as String),
+              int.parse(document.data()['tahun'] as String),
+            ));
+          } catch (e) {
+            // print(e.toString());
+          }
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _reminderSubscription?.cancel();
+    super.dispose();
+  }
+
+  deletedata(id)async{
+    await FirebaseFirestore.instance.collection('Reminderdb').doc(id).delete();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Homepage'),
-        
-
       ),
-      body: 
-      
-
-
-        
-  
-
-      ListView.builder(
-          itemCount: rems.length,
-          itemBuilder: (context, index) {
-            fetchRems();
-            final rem = rems[index];
-            final judul = rem.judul;
-            final isi = rem.isi;
-            print(judul);
-            
-          Center(
-              child: MaterialButton(
-                    onPressed:_showTimePicker,
-                        color: Colors.blue,
-                    child: const  Padding(
-                    padding: EdgeInsets.all(20.0),
-                    child: const Text('pick time',
-                      style: TextStyle(color: Colors.white, fontSize: 30)),
-                          ),
-                        ),
-                      );
-
-            return ListTile(
-              leading: CircleAvatar(
-                child: Text('${index + 1}'),
-              ),
-              title: Text(judul),
-              subtitle: Text(isi),
-            );
-            
-          })
+      body: ListView.builder(
+        itemCount: _reminder.length,
+        itemBuilder: (context, index) {
           
-          ,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.push(context,
-      MaterialPageRoute(builder: (context) => Add())),
-      ),
-      
-      
-    );
-  }
+          initialize();
+          final rem = _reminder[index];
+          final judul = rem.judul;
+          final isi = rem.isi;
+          final tanggal = rem.tanggal;
+          final bulan = rem.bulan;
+          final tahun = rem.tahun;
+          // print(judul);
 
-  void fetchRems() async {
-    print('fetchUsers Called');
-    rems.add(Reminder("test1", "test1"));
-    rems.add(Reminder("test2", "test2"));
-    print(rems.toString());
+          return Slidable(
+            endActionPane: ActionPane(
+              motion: const BehindMotion(),
+              children: [
+                SlidableAction(
+                  icon: Icons.edit,
+                  backgroundColor: Colors.blue,
+                  onPressed: (context) => {},
+                ),
+                SlidableAction(
+                  icon: Icons.delete,
+                  backgroundColor: Colors.red,
+                  onPressed: (context) => {
+
+                    //delete document dari firebase juga
+                    deletedata('${index + 1}')
+
+                  },
+                ),
+              ],
+            ),
+            child: 
+            ListTile(
+            leading: CircleAvatar(
+              child: Text('${index + 1}'),
+            ),
+            title: Text(judul),
+            subtitle: Text("$isi \n $tanggal - $bulan - $tahun"),
+            isThreeLine: true,
+            
+          ),
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => Add()),
+        ),
+        child: Icon(Icons.add),
+      ),
+    );
   }
 }

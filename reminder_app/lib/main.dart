@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:reminder_app/screen/home.dart';
-import 'package:reminder_app/screen/login.dart';
+import 'screen/login.dart';
+import 'screen/homepage.dart';
 
 void main(){
   runApp(const MyApp());

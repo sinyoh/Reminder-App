@@ -1,7 +1,10 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:reminder_app/screen/homepage.dart';
-import 'package:reminder_app/screen/register.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../firebase_options.dart';
+import 'homepage.dart';
+import 'register.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -10,8 +13,9 @@ class Login extends StatefulWidget {
   State<Login> createState() => _LoginState();
 }
 
-
 class _LoginState extends State<Login> {
+  String Nama = "";
+  String Pass = "";
   final _formKey = GlobalKey<FormState>();
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
@@ -39,6 +43,9 @@ class _LoginState extends State<Login> {
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your email';
+                    } else {
+                     
+                      Nama = value.toString().trim();
                     }
                     return null;
                   },
@@ -55,6 +62,8 @@ class _LoginState extends State<Login> {
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your password';
+                    } else {
+                      Pass = value.toString();
                     }
                     return null;
                   },
@@ -66,41 +75,62 @@ class _LoginState extends State<Login> {
                 child: Center(
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.push(context,
-      MaterialPageRoute(builder: (context) => HomeScreen()));
-                      // if (_formKey.currentState!.validate()) {
-                      //   // Navigate the user to the Home page
-                      // } else {
-                      //   ScaffoldMessenger.of(context).showSnackBar(
-                      //     const SnackBar(content: Text('Please fill input')),
-                      //   );
-                      // }
+                      if (_formKey.currentState!.validate()) {
+                        loginWithEmailAndPassword(Nama, Pass);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Please fill input')),
+                        );
+                      }
                     },
                     child: const Text('Submit'),
                   ),
                 ),
               ),
-              
-               RichText(
-                text: TextSpan( text: "Don't have an account?",
-                children: [
-                  TextSpan(
-                    text: "Register now",
-                    style: TextStyle(
-                  fontSize: 20,
-                  color: Colors.blue,
-                  decoration: TextDecoration.underline,
-                ),
-                recognizer: TapGestureRecognizer()..onTap = () => Navigator.push(context,
-      MaterialPageRoute(builder: (context) => Register())),
-                  )
-                ])
-               )
-              
+              RichText(
+                  text: TextSpan(text: "Don't have an account?", children: [
+                TextSpan(
+                  text: "Register now",
+                  style: TextStyle(
+                    fontSize: 20,
+                    color: Colors.blue,
+                    decoration: TextDecoration.underline,
+                  ),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () => Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => Register())),
+                )
+              ]))
             ],
           ),
         ),
       ),
     );
+  }
+
+// ...
+
+  void loginWithEmailAndPassword(String email, String password) async {
+    await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform);
+    try {
+      UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      if (FirebaseAuth.instance.currentUser?.uid != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScreen()),
+        );
+      }
+    } catch (e) {
+      print("Nama: "+Nama);
+      print(e.toString());
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Login failed. Please try again.')),
+      );
+    }
   }
 }
