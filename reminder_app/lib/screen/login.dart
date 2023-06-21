@@ -24,7 +24,7 @@ class _LoginState extends State<Login> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Login"),
+        title: Text("Reminder App"),
       ),
       body: Form(
         key: _formKey,
@@ -83,7 +83,7 @@ class _LoginState extends State<Login> {
                         );
                       }
                     },
-                    child: const Text('Submit'),
+                    child: const Text('Login'),
                   ),
                 ),
               ),
@@ -92,7 +92,7 @@ class _LoginState extends State<Login> {
                 TextSpan(
                   text: "Register now",
                   style: TextStyle(
-                    fontSize: 20,
+                    fontSize: 15,
                     color: Colors.blue,
                     decoration: TextDecoration.underline,
                   ),

@@ -2,7 +2,9 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'reminder.dart';
+import 'package:reminder_app/Screen/edit.dart';
+import 'package:firebase_auth/firebase_auth.dart'
+    hide EmailAuthProvider, PhoneAuthProvider;
 import 'AddReminder.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -36,21 +38,27 @@ class _HomeScreenState extends State<HomeScreen> {
         .snapshots()
         .listen((snapshot) {
       setState(() {
-        _reminder = [];
+        final reminders = <Reminder>[];
         for (final document in snapshot.docs) {
           try {
-            // print(document.toString());
-            _reminder.add(Reminder(
-              document.data()['judul'] as String,
-              document.data()['isi'] as String,
-              int.parse(document.data()['tanggal'] as String),
-              int.parse(document.data()['bulan'] as String),
-              int.parse(document.data()['tahun'] as String),
-            ));
+            if (document.data()["sender"] ==
+                FirebaseAuth.instance.currentUser!.uid) {
+              reminders.add(Reminder(
+                document.id,
+                document.data()['judul'] as String,
+                document.data()['isi'] as String,
+                int.parse(document.data()['tanggal'] as String),
+                int.parse(document.data()['bulan'] as String),
+                int.parse(document.data()['tahun'] as String),
+                document.data()['jam'] as int,
+                document.data()['menit'] as int,
+              ));
+            }
           } catch (e) {
-            // print(e.toString());
+            print(e.toString());
           }
         }
+        _reminder = reminders;
       });
     });
   }
@@ -61,8 +69,18 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  deletedata(id) async {
-    await FirebaseFirestore.instance.collection('Reminderdb').doc(id).delete();
+  Future<void> deletedata(String id) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('Reminderdb')
+          .doc(id)
+          .delete();
+      setState(() {
+        _reminder.removeWhere((reminder) => reminder.id == id);
+      });
+    } catch (e) {
+      print('Error deleting data: $e');
+    }
   }
 
   @override
@@ -71,48 +89,88 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Homepage'),
       ),
-      body: ListView.builder(
-        itemCount: _reminder.length,
-        itemBuilder: (context, index) {
-          initialize();
-          final rem = _reminder[index];
-          final judul = rem.judul;
-          final isi = rem.isi;
-          final tanggal = rem.tanggal;
-          final bulan = rem.bulan;
-          final tahun = rem.tahun;
-          // print(judul);
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('Reminderdb').snapshots(),
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}');
+          }
 
-          return Slidable(
-              endActionPane: ActionPane(
-                motion: const BehindMotion(),
-                children: [
-                  SlidableAction(
-                    icon: Icons.edit,
-                    backgroundColor: Colors.blue,
-                    onPressed: (context) => {},
-                  ),
-                  SlidableAction(
-                    icon: Icons.delete,
-                    backgroundColor: Colors.red,
-                    onPressed: (context) => {
-                      //delete document dari firebase juga
-                      deletedata('${index + 1}')
-                    },
-                  ),
-                ],
-              ),
-              child:
-                  //   ListTile(
-                  //   leading: CircleAvatar(
-                  //     child: Text('${index + 1}'),
-                  //   ),
-                  //   title: Text(judul),
-                  //   subtitle: Text("$isi \n $tanggal - $bulan - $tahun"),
-                  //   isThreeLine: true,
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return CircularProgressIndicator();
+          }
 
-                  // ),
-                  Card(
+          final documents = snapshot.data!.docs;
+
+          return ListView.builder(
+            itemCount: documents.length,
+            itemBuilder: (context, index) {
+              final doc = documents[index];
+              final rem = _reminder.length > index ? _reminder[index] : null;
+              final id = rem?.id ?? '';
+              final judul = rem?.judul ?? '';
+              final isi = rem?.isi ?? '';
+              final tanggal = rem?.tanggal ?? 0;
+              final bulan = rem?.bulan ?? 0;
+              final tahun = rem?.tahun ?? 0;
+              final jam = rem?.jam ?? 0;
+              final menit = rem?.menit ?? 0;
+              print("ID:" + id.toString());
+              print("Tahun" + tahun.toString());
+
+              return Visibility(
+                  visible: judul.isNotEmpty,
+                  child: Slidable(
+                    endActionPane: ActionPane(
+                      motion: const BehindMotion(),
+                      children: [
+                        SlidableAction(
+                          icon: Icons.edit,
+                          backgroundColor: Colors.blue,
+                          onPressed: (context) {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        Edit(edited: id.toString())));
+                          },
+                        ),
+                        SlidableAction(
+                          icon: Icons.delete,
+                          backgroundColor: Colors.red,
+                          onPressed: (context) {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text('Delete Reminder'),
+                                  content: const Text(
+                                    'Are you sure you want to delete this reminder?',
+                                  ),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () {
+                                        deletedata(doc.id);
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: const Text('Delete'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: const Text('Cancel'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+
+                    child: Card(
                       shadowColor: Colors.red,
                       elevation: 8,
                       clipBehavior: Clip.antiAlias,
@@ -120,26 +178,48 @@ class _HomeScreenState extends State<HomeScreen> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Container(
-                          padding: EdgeInsets.all(12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '$isi',
-                                style: TextStyle(fontSize: 20),
-                              ),
-                              Text(
-                                '$tanggal - $bulan - $tahun',
-                                style: TextStyle(fontSize: 12),
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                judul,
-                                style: TextStyle(
-                                    fontSize: 24, fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          ))));
+                        width: 860,
+                        padding: EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '$isi',
+                              style: TextStyle(fontSize: 20),
+                            ),
+                            Row(
+                              children: [
+                                Text(
+                                  judul,
+                                  style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                Align(
+                                  alignment: Alignment.bottomRight,
+                                  child: Text(
+                                    '$tanggal - $bulan - $tahun \t $jam:$menit',
+                                    style: TextStyle(fontSize: 12),
+                                  ),
+                                ),
+                              ],
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                    // child: ListTile(
+                    //   leading: CircleAvatar(
+
+                    //     child: Text('${index + 1}'),
+                    //   ),
+                    //   title: Text(judul),
+                    //   subtitle: Text("$isi \n  $tanggal-$bulan-$tahun \n $jam:$menit"),
+                    //   isThreeLine: true,
+                    // ),
+                  ));
+            },
+          );
         },
       ),
       floatingActionButton: FloatingActionButton(
@@ -151,4 +231,18 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+}
+
+class Reminder {
+  final String id;
+  final String judul;
+  final String isi;
+  final int tanggal;
+  final int bulan;
+  final int tahun;
+  final int jam;
+  final int menit;
+
+  Reminder(this.id, this.judul, this.isi, this.tanggal, this.bulan, this.tahun,
+      this.jam, this.menit);
 }

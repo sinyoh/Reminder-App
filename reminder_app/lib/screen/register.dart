@@ -2,8 +2,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:reminder_app/screen/homepage.dart';
+
 import '../firebase_options.dart';
+import 'homepage.dart';
 import 'login.dart';
 
 class Register extends StatefulWidget {
